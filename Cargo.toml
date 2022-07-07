@@ -1,6 +1,6 @@
 [package]
 	name = "freds"
-	version = "0.0.1"
+	version = "0.0.2"
 	authors = ["Kyran Gostelow <kyran@gostelow.me>"]
 	edition = "2021"
 	description = "FREDS: Flexible Referencing Extensible Data Store"

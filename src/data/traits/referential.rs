@@ -9,9 +9,9 @@ macro_rules! impl_referential {
         impl crate::data::ToInline for $type {
             fn into_inline_data(
                 self,
-                freds: &mut crate::FREDS,
+                writer: &mut crate::Writer,
             ) -> [u8; crate::data::constants::SIZE_INLINE] {
-                freds.append(self).to_be_bytes()
+                writer.append(self).to_be_bytes()
             }
         }
     };

@@ -2,11 +2,11 @@ mod element;
 mod kind;
 use crate::{data::constants::SIZE_TYPE, Data, Inline, ReferentialData};
 pub use {element::Element, kind::Kind};
-pub struct FREDS {
+pub struct Writer {
     data: [Kind; 2_usize.pow(SIZE_TYPE as u32 * 8)],
     core: Option<Inline>,
 }
-impl Default for FREDS {
+impl Default for Writer {
     fn default() -> Self {
         const KIND: Kind = Kind { data: Vec::new() };
         Self {
@@ -15,7 +15,7 @@ impl Default for FREDS {
         }
     }
 }
-impl FREDS {
+impl Writer {
     pub fn set_core(&mut self, core: Inline) {
         self.core = Some(core);
     }
@@ -41,6 +41,6 @@ impl FREDS {
     }
 }
 
-pub trait IntoFreds {
-    fn into_freds(self) -> Vec<u8>;
+pub trait Write {
+    fn write(self) -> Vec<u8>;
 }

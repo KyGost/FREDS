@@ -8,7 +8,7 @@ macro_rules! impl_inline {
         impl crate::data::ToInline for $type {
             fn into_inline_data(
                 self,
-                _freds: &mut crate::FREDS,
+                _writer: &mut crate::Writer,
             ) -> [u8; crate::data::constants::SIZE_INLINE] {
                 self.into_bytes()
             }

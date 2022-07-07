@@ -1,16 +1,16 @@
-use crate::{impl_referential, Data, Inline, ReferentialData, FREDS};
+use crate::{impl_referential, Data, Inline, ReferentialData, Writer};
 
 pub struct Array {
     pub data: Vec<Inline>,
 }
 impl Array {
-    pub fn push<Input: Data>(&mut self, freds: &mut FREDS, input: Input) {
-        self.data.push(freds.into_inline(input));
+    pub fn push<Input: Data>(&mut self, writer: &mut Writer, input: Input) {
+        self.data.push(writer.into_inline(input));
     }
-    pub fn from<Input: Data>(freds: &mut FREDS, input: Vec<Input>) -> Self {
+    pub fn from<Input: Data>(writer: &mut Writer, input: Vec<Input>) -> Self {
         let data = input
             .into_iter()
-            .map(|input| freds.into_inline(input))
+            .map(|input| writer.into_inline(input))
             .collect();
         Self { data }
     }
