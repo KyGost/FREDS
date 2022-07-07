@@ -1,19 +1,21 @@
 [package]
 	name = "freds"
-	version = "0.0.0"
+	version = "0.0.1"
 	authors = ["Kyran Gostelow <kyran@gostelow.me>"]
 	edition = "2021"
 	description = "FREDS: Flexible Referencing Extensible Data Store"
 	license = "Apache-2.0"
 	repository = "https://github.com/KyGost/FREDS"
 	readme = "README.md"
-	keywords = ["object storage", "storage", "database", "object-oriented", "extensible", "serde"]
+	keywords = ["storage", "database", "object-oriented", "extensible", "serde", "query-engine"]
 	metadata.docs.rs.all-features = true
 
 [features]
-	default = ["json", "tokio"]
-	json = ["serde_json"]
+	default = ["read", "write", "serde", "serde_json"]
+	read = []
+	write = ["tokio"]
 
 [dependencies]
+	serde = {version = "1", optional = true}
 	serde_json = {version = "1", optional = true}
 	tokio = {version = "1", optional = true, features = ["fs", "io-util"]}
