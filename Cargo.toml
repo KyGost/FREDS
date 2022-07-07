@@ -7,7 +7,7 @@
 	license = "Apache-2.0"
 	repository = "https://github.com/KyGost/FREDS"
 	readme = "README.md"
-	keywords = ["storage", "database", "object-oriented", "extensible", "serde", "query-engine"]
+	keywords = ["storage", "database", "extensible", "serde", "query-engine"]
 	metadata.docs.rs.all-features = true
 
 [features]
