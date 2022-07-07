@@ -1,6 +1,7 @@
 mod builder;
 mod data;
-mod freds;
+mod writer;
+mod reader;
 mod implementations;
 
-pub use {crate::freds::*, builder::*, data::*, implementations::*};
+pub use {reader::*, writer::*, builder::*, data::*, implementations::*};

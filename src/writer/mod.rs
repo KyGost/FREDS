@@ -1,6 +1,5 @@
 mod element;
 mod kind;
-mod reader;
 use crate::{data::constants::SIZE_TYPE, Data, Inline, ReferentialData};
 pub use {element::Element, kind::Kind};
 pub struct FREDS {

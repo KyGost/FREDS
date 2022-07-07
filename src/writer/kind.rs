@@ -1,4 +1,4 @@
-use crate::{data::constants::SIZE_TYPE, freds::Element};
+use crate::{data::constants::SIZE_TYPE, writer::Element};
 #[derive(Default)]
 pub struct Kind {
     pub data: Vec<Element>,
