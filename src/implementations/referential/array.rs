@@ -5,7 +5,8 @@ pub struct Array {
 }
 impl Array {
     pub fn push<Input: Data>(&mut self, writer: &mut Writer, input: Input) -> Result<(), Error> {
-        Ok(self.data.push(input.into_inline(writer)?))
+        self.data.push(input.into_inline(writer)?);
+        Ok(())
     }
     pub fn from<Input: Data>(writer: &mut Writer, input: Vec<Input>) -> Result<Self, Error> {
         let data = input
