@@ -1,5 +1,5 @@
 use {
-    crate::{Data, Error, Inline, ReferentialData, InlineData},
+    crate::{Data, Error, Inline, InlineData, ReferentialData},
     std::collections::HashMap,
 };
 

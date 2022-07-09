@@ -1,6 +1,6 @@
 use crate::{
     data::constants::{SIZE_INLINE, SIZE_TYPE},
-    Data, Error, InlineData, ReferentialData
+    Data, Error, InlineData, ReferentialData,
 };
 
 pub struct Null;
