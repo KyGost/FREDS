@@ -1,11 +1,12 @@
-use crate::{data::constants::SIZE_INLINE, impl_inline, Data, InlineData};
+use crate::{data::constants::SIZE_INLINE, Data, Error, InlineData, ReferentialData};
 
 impl Data for bool {
-    const TYPE: [u8; 1] = [b'b'];
+    const KIND: [u8; 1] = [b'b'];
+    const IS_INLINE: bool = true;
 }
 impl InlineData for bool {
-    fn into_bytes(self) -> [u8; SIZE_INLINE] {
-        [self as u8; SIZE_INLINE]
+    fn into_inline_data(self) -> Result<[u8; SIZE_INLINE], Error> {
+        Ok([self as u8; SIZE_INLINE])
     }
 }
-impl_inline!(bool);
+impl ReferentialData for bool {}

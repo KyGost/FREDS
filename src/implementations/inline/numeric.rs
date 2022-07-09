@@ -1,31 +1,34 @@
-use crate::{impl_inline, Data, InlineData};
+use crate::{Data, Error, InlineData, ReferentialData};
 
 impl Data for u64 {
-    const TYPE: [u8; 1] = [1];
+    const KIND: [u8; 1] = [1];
+    const IS_INLINE: bool = true;
 }
 impl InlineData for u64 {
-    fn into_bytes(self) -> [u8; 8] {
-        self.to_be_bytes()
+    fn into_inline_data(self) -> Result<[u8; 8], Error> {
+        Ok(self.to_be_bytes())
     }
 }
-impl_inline!(u64);
+impl ReferentialData for u64 {}
 
 impl Data for i64 {
-    const TYPE: [u8; 1] = [1];
+    const KIND: [u8; 1] = [1];
+    const IS_INLINE: bool = true;
 }
 impl InlineData for i64 {
-    fn into_bytes(self) -> [u8; 8] {
-        self.to_be_bytes()
+    fn into_inline_data(self) -> Result<[u8; 8], Error> {
+        Ok(self.to_be_bytes())
     }
 }
-impl_inline!(i64);
+impl ReferentialData for i64 {}
 
 impl Data for f64 {
-    const TYPE: [u8; 1] = [1];
+    const KIND: [u8; 1] = [1];
+    const IS_INLINE: bool = true;
 }
 impl InlineData for f64 {
-    fn into_bytes(self) -> [u8; 8] {
-        self.to_be_bytes()
+    fn into_inline_data(self) -> Result<[u8; 8], Error> {
+        Ok(self.to_be_bytes())
     }
 }
-impl_inline!(f64);
+impl ReferentialData for f64 {}

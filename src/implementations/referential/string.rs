@@ -1,14 +1,15 @@
-use crate::{impl_referential, Data, ReferentialData};
+use crate::{Data, Error, InlineData, ReferentialData};
 
 impl Data for String {
-    const TYPE: [u8; 1] = [b's'];
+    const KIND: [u8; 1] = [b's'];
+    const IS_INLINE: bool = false;
 }
 impl ReferentialData for String {
-    fn to_bytes(self) -> Vec<u8> {
-        self.as_bytes().to_vec()
+    fn into_bytes(self) -> Result<Vec<u8>, Error> {
+        Ok(self.as_bytes().to_vec())
     }
-    fn from_bytes(bytes: Vec<u8>) -> Self {
-        Self::from_utf8(bytes).unwrap()
+    fn from_bytes(bytes: Vec<u8>) -> Result<Self, Error> {
+        Self::from_utf8(bytes).map_err(|_| Error::ParseError)
     }
 }
-impl_referential!(String);
+impl InlineData for String {}

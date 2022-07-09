@@ -1,7 +1,7 @@
 mod builder;
 mod data;
-mod writer;
-mod reader;
 mod implementations;
+mod reader;
+mod writer;
 
-pub use {reader::*, writer::*, builder::*, data::*, implementations::*};
+pub use {builder::*, data::*, implementations::*, reader::*, writer::*};

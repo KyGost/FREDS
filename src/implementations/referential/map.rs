@@ -1,5 +1,5 @@
 use {
-    crate::{impl_referential, Data, Inline, ReferentialData},
+    crate::{Data, Error, Inline, ReferentialData, InlineData},
     std::collections::HashMap,
 };
 
@@ -8,11 +8,14 @@ pub struct Map {
 }
 
 impl Data for Map {
-    const TYPE: [u8; 1] = [b'm'];
+    const KIND: [u8; 1] = [b'm'];
+    const IS_INLINE: bool = false;
 }
+impl InlineData for Map {}
 impl ReferentialData for Map {
-    fn to_bytes(self) -> Vec<u8> {
-        self.data
+    fn into_bytes(self) -> Result<Vec<u8>, Error> {
+        Ok(self
+            .data
             .into_iter()
             .map(|(key, value)| {
                 let key: Vec<u8> = key.into();
@@ -20,10 +23,6 @@ impl ReferentialData for Map {
                 key.into_iter().chain(value).collect()
             })
             .collect::<Vec<Vec<u8>>>()
-            .concat()
-    }
-    fn from_bytes(_bytes: Vec<u8>) -> Self {
-        unimplemented!()
+            .concat())
     }
 }
-impl_referential!(Map);

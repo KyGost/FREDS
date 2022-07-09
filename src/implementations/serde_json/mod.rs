@@ -1,49 +1,51 @@
 use {
-    crate::{Array, Inline, Map, Null, Write, Writer},
+    crate::{Array, DataExt, Error, Inline, Map, Null, Write, Writer},
     serde_json::{Number, Value},
 };
 impl Write for Value {
     fn write(self) -> Vec<u8> {
         let mut writer = Writer::default();
-        let core = value_into_inline(&mut writer, self);
+        let core = value_into_inline(&mut writer, self).unwrap();
         writer.set_core(core);
         writer.into_bytes()
     }
 }
-pub fn value_into_inline(writer: &mut Writer, value: Value) -> Inline {
+pub fn value_into_inline(writer: &mut Writer, value: Value) -> Result<Inline, Error> {
     match value {
         Value::Object(map) => {
             let map = Map {
                 data: map
                     .into_iter()
-                    .map(|(key, value)| (writer.into_inline(key), value_into_inline(writer, value)))
-                    .collect(),
+                    .map(|(key, value)| {
+                        Ok((key.into_inline(writer)?, value_into_inline(writer, value)?))
+                    })
+                    .collect::<Result<_, _>>()?,
             };
-            writer.into_inline(map)
+            map.into_inline(writer)
         }
         Value::Array(vec) => {
             let array = Array {
                 data: vec
                     .into_iter()
                     .map(|value| value_into_inline(writer, value))
-                    .collect(),
+                    .collect::<Result<_, _>>()?,
             };
-            writer.into_inline(array)
+            array.into_inline(writer)
         }
-        Value::String(string) => writer.into_inline(string),
+        Value::String(string) => string.into_inline(writer),
         Value::Number(number) => number_into_inline(writer, number),
-        Value::Bool(bool) => writer.into_inline(bool),
-        Value::Null => writer.into_inline(Null),
+        Value::Bool(bool) => bool.into_inline(writer),
+        Value::Null => Null.into_inline(writer),
     }
 }
 
-pub fn number_into_inline(writer: &mut Writer, number: Number) -> Inline {
+pub fn number_into_inline(writer: &mut Writer, number: Number) -> Result<Inline, Error> {
     if number.is_u64() {
-        writer.into_inline(number.as_u64().unwrap())
+        number.as_u64().unwrap().into_inline(writer)
     } else if number.is_i64() {
-        writer.into_inline(number.as_i64().unwrap())
+        number.as_i64().unwrap().into_inline(writer)
     } else if number.is_f64() {
-        writer.into_inline(number.as_f64().unwrap())
+        number.as_f64().unwrap().into_inline(writer)
     } else {
         panic!()
     }

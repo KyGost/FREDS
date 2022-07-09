@@ -1,18 +1,11 @@
-use crate::{data::constants::SIZE_INLINE, Data};
-pub trait InlineData: Data {
-    fn into_bytes(self) -> [u8; SIZE_INLINE];
+use crate::{data::constants::SIZE_INLINE, Data, Error};
+pub trait InlineData: Sized {
+    #[cfg(feature = "write")]
+    fn into_inline_data(self) -> Result<[u8; SIZE_INLINE], Error> {
+        Err(Error::Unimplemented)
+    }
+    #[cfg(feature = "read")]
+    fn from_inline_data(bytes: [u8; SIZE_INLINE]) -> Result<Self, Error> {
+        Err(Error::Unimplemented)
+    }
 }
-#[macro_export]
-macro_rules! impl_inline {
-    ($type: ty) => {
-        impl crate::data::ToInline for $type {
-            fn into_inline_data(
-                self,
-                _writer: &mut crate::Writer,
-            ) -> [u8; crate::data::constants::SIZE_INLINE] {
-                self.into_bytes()
-            }
-        }
-    };
-}
-pub use impl_inline;

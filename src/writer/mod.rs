@@ -1,6 +1,6 @@
 mod element;
 mod kind;
-use crate::{data::constants::SIZE_TYPE, Data, Inline, ReferentialData};
+use crate::{data::constants::SIZE_TYPE, Data, DataExt, Error, Inline, ReferentialData};
 pub use {element::Element, kind::Kind};
 pub struct Writer {
     data: [Kind; 2_usize.pow(SIZE_TYPE as u32 * 8)],
@@ -19,15 +19,9 @@ impl Writer {
     pub fn set_core(&mut self, core: Inline) {
         self.core = Some(core);
     }
-    pub fn append<Data: ReferentialData>(&mut self, data: Data) -> usize {
-        let dataset = &mut self.data[Data::TYPE[0] as usize]; // Indexing TYPE at [0] defeats the purpose of its type
-        dataset.append(data.to_bytes())
-    }
-    pub fn into_inline<Input: Data>(&mut self, data: Input) -> Inline {
-        Inline {
-            kind: Input::TYPE,
-            data: data.into_inline_data(self),
-        }
+    pub fn append<Data: crate::Data>(&mut self, data: Data) -> Result<usize, Error> {
+        let dataset = &mut self.data[Data::KIND[0] as usize]; // Indexing TYPE at [0] defeats the purpose of its type
+        dataset.append(data.into_bytes()?)
     }
     pub fn into_bytes(self) -> Vec<u8> {
         let data_bytes: Vec<u8> = self
