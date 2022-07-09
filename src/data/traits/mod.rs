@@ -37,7 +37,7 @@ pub trait DataExt: Data {
         })
     }
     #[cfg(feature = "read")]
-    fn from_inline(inline: Inline, writer: &mut Writer) -> Result<Self, Error> {
+    fn from_inline(_inline: Inline, _writer: &mut Writer) -> Result<Self, Error> {
         /*let data = if Self::IS_INLINE {
             Self::from_inline(inline)
         } else {

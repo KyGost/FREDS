@@ -1,6 +1,6 @@
 mod element;
 mod kind;
-use crate::{data::constants::SIZE_TYPE, Data, DataExt, Error, Inline, ReferentialData};
+use crate::{data::constants::SIZE_TYPE, Data, Error, Inline, ReferentialData};
 pub use {element::Element, kind::Kind};
 pub struct Writer {
     data: [Kind; 2_usize.pow(SIZE_TYPE as u32 * 8)],
