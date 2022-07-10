@@ -1,10 +1,10 @@
-use crate::{data::constants::SIZE_TYPE, writer::Element, Error};
+use crate::{data::constants::SIZE_KIND, writer::Element, Error};
 #[derive(Default)]
 pub struct Kind {
     pub data: Vec<Element>,
 }
 impl Kind {
-    pub fn into_bytes(self, kind: [u8; SIZE_TYPE * 8]) -> Vec<u8> {
+    pub fn into_bytes(self, kind: [u8; SIZE_KIND * 8]) -> Vec<u8> {
         let size = self.data.len();
         if size > 0 {
             let data: Vec<u8> = self.data.into_iter().flat_map(|e| e.into_bytes()).collect();

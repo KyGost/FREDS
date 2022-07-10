@@ -1,8 +1,8 @@
 mod inline;
 mod referential;
 use crate::{
-    data::constants::{SIZE_INLINE, SIZE_TYPE},
-    Inline, Writer,
+    data::constants::{SIZE_INLINE, SIZE_KIND},
+    Inline, Reader, Writer,
 };
 pub use {inline::InlineData, referential::ReferentialData};
 
@@ -15,7 +15,7 @@ pub enum Error {
 }
 
 pub trait Data: InlineData + ReferentialData {
-    const KIND: [u8; SIZE_TYPE];
+    const KIND: [u8; SIZE_KIND];
     const IS_INLINE: bool = true;
 }
 impl<T: Data> DataExt for T {}
@@ -37,7 +37,7 @@ pub trait DataExt: Data {
         })
     }
     #[cfg(feature = "read")]
-    fn from_inline(_inline: Inline, _writer: &mut Writer) -> Result<Self, Error> {
+    fn from_inline(_inline: Inline) -> Result<Self, Error> {
         /*let data = if Self::IS_INLINE {
             Self::from_inline(inline)
         } else {

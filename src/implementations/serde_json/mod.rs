@@ -1,5 +1,5 @@
 use {
-    crate::{Array, DataExt, Error, Inline, Map, Null, Write, Writer},
+    crate::{Array, DataExt, Error, Inline, Map, Null, Reader, Write, Writer},
     serde_json::{Number, Value},
 };
 impl Write for Value {
@@ -51,18 +51,82 @@ pub fn number_into_inline(writer: &mut Writer, number: Number) -> Result<Inline,
     }
 }
 
+macro_rules! convert_enum {
+    [$($kind: ty),*] => {
+        fn value_from_inline(inline: Inline, reader: &mut crate::Reader) -> Result<Value, Error> {
+            use crate::{Data, implementations::serde_json::IntoValue};
+            Ok(match inline.kind {
+                $(<$kind>::KIND => <$kind>::from_inline(inline)?.into_value(reader)?),*,
+                _ => Value::Null,
+            })
+        }
+    }
+}
+
+trait IntoValue: Sized {
+    fn into_value(self, reader: &mut Reader) -> Result<Value, Error>;
+}
+impl IntoValue for Array {
+    fn into_value(self, reader: &mut Reader) -> Result<Value, Error> {
+        self.data
+            .into_iter()
+            .map(|data| value_from_inline(data, reader))
+            .collect::<Result<Vec<Value>, Error>>()
+            .map(Value::Array)
+    }
+}
+impl IntoValue for Map {
+    fn into_value(self, reader: &mut Reader) -> Result<Value, Error> {
+        self.data
+            .into_iter()
+            .map(|(key, value)| Ok((String::from_inline(key)?, value_from_inline(value, reader)?)))
+            .collect::<Result<serde_json::Map<String, Value>, Error>>()
+            .map(Value::Object)
+    }
+}
+impl IntoValue for String {
+    fn into_value(self, _reader: &mut Reader) -> Result<Value, Error> {
+        Ok(Value::String(self))
+    }
+}
+impl IntoValue for u64 {
+    fn into_value(self, _reader: &mut Reader) -> Result<Value, Error> {
+        Ok(Value::Number(self.into()))
+    }
+}
+impl IntoValue for i64 {
+    fn into_value(self, _reader: &mut Reader) -> Result<Value, Error> {
+        Ok(Value::Number(self.into()))
+    }
+}
+impl IntoValue for f64 {
+    fn into_value(self, _reader: &mut Reader) -> Result<Value, Error> {
+        Ok(Value::Number(Number::from_f64(self).unwrap()))
+    }
+}
+impl IntoValue for bool {
+    fn into_value(self, _reader: &mut Reader) -> Result<Value, Error> {
+        Ok(Value::Bool(self))
+    }
+}
+
+convert_enum![Array, Map, String, u64, i64, f64, bool];
+
+#[cfg(feature = "write")]
 #[test]
 fn any() {
     use serde_json::json;
     let json = json!("test");
     json.write();
 }
+#[cfg(feature = "write")]
 #[test]
 fn big() {
     use serde_json::from_str;
     let json: Value = from_str(include_str!("test.json")).unwrap();
     json.write();
 }
+#[cfg(feature = "write")]
 #[test]
 fn to_file() {
     use {serde_json::from_str, std::io::prelude::*};
@@ -70,4 +134,9 @@ fn to_file() {
     let writer = json.write();
     let mut buffer = std::fs::File::create("test.writer").unwrap();
     buffer.write(&writer).unwrap();
+}
+#[cfg(feature = "read")]
+#[test]
+fn from_file() {
+    unimplemented!()
 }

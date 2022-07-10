@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{Error};
 pub trait ReferentialData: Sized {
     #[cfg(feature = "write")]
     fn into_bytes(self) -> Result<Vec<u8>, Error> {

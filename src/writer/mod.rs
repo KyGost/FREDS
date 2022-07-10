@@ -1,16 +1,16 @@
 mod element;
 mod kind;
-use crate::{data::constants::SIZE_TYPE, Data, Error, Inline, ReferentialData};
+use crate::{data::constants::SIZE_KIND, Error, Inline};
 pub use {element::Element, kind::Kind};
 pub struct Writer {
-    data: [Kind; 2_usize.pow(SIZE_TYPE as u32 * 8)],
+    data: [Kind; 2_usize.pow(SIZE_KIND as u32 * 8)],
     core: Option<Inline>,
 }
 impl Default for Writer {
     fn default() -> Self {
         const KIND: Kind = Kind { data: Vec::new() };
         Self {
-            data: [KIND; 2_usize.pow(SIZE_TYPE as u32 * 8)],
+            data: [KIND; 2_usize.pow(SIZE_KIND as u32 * 8)],
             core: None,
         }
     }

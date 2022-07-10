@@ -1,4 +1,4 @@
-use crate::{Data, Error, InlineData, ReferentialData};
+use crate::{Data, Error, InlineData, Reader, ReferentialData};
 
 impl Data for String {
     const KIND: [u8; 1] = [b's'];
