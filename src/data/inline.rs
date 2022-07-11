@@ -1,8 +1,11 @@
 use crate::data::constants::*;
-#[derive(Clone, Copy, Hash, Eq, PartialEq, Default)]
+#[derive(Clone, Copy, Hash, Eq, PartialEq, Default, Debug)]
 pub struct Inline {
     pub kind: [u8; SIZE_KIND],
     pub data: [u8; SIZE_INLINE],
+}
+impl Inline {
+    pub const BUFFER: [u8; SIZE_KIND + SIZE_INLINE] = [0; SIZE_KIND + SIZE_INLINE];
 }
 impl Into<Vec<u8>> for Inline {
     fn into(self) -> Vec<u8> {

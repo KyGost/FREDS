@@ -56,7 +56,8 @@ macro_rules! convert_enum {
         fn value_from_inline(inline: Inline, reader: &mut crate::Reader) -> Result<Value, Error> {
             use crate::{Data, implementations::serde_json::IntoValue};
             Ok(match inline.kind {
-                $(<$kind>::KIND => <$kind>::from_inline(inline)?.into_value(reader)?),*,
+                Null::KIND => Value::Null,
+                $(<$kind>::KIND => <$kind>::from_inline(inline, reader)?.into_value(reader)?),*,
                 _ => Value::Null,
             })
         }
@@ -79,7 +80,12 @@ impl IntoValue for Map {
     fn into_value(self, reader: &mut Reader) -> Result<Value, Error> {
         self.data
             .into_iter()
-            .map(|(key, value)| Ok((String::from_inline(key)?, value_from_inline(value, reader)?)))
+            .map(|(key, value)| {
+                Ok((
+                    String::from_inline(key, reader)?,
+                    value_from_inline(value, reader)?,
+                ))
+            })
             .collect::<Result<serde_json::Map<String, Value>, Error>>()
             .map(Value::Object)
     }
@@ -123,20 +129,25 @@ fn any() {
 #[test]
 fn big() {
     use serde_json::from_str;
-    let json: Value = from_str(include_str!("test.json")).unwrap();
+    let json: Value = from_str(include_str!("test1.json")).unwrap();
     json.write();
 }
 #[cfg(feature = "write")]
 #[test]
 fn to_file() {
     use {serde_json::from_str, std::io::prelude::*};
-    let json: Value = from_str(include_str!("test.json")).unwrap();
+    let json: Value = from_str(include_str!("test1.json")).unwrap();
     let writer = json.write();
-    let mut buffer = std::fs::File::create("test.writer").unwrap();
+    let mut buffer = std::fs::File::create("test.freds").unwrap();
     buffer.write(&writer).unwrap();
 }
 #[cfg(feature = "read")]
 #[test]
 fn from_file() {
-    unimplemented!()
+    use {serde_json::from_str, tokio::runtime::Runtime};
+    let runtime = Runtime::new().unwrap();
+    let mut reader = runtime.block_on(Reader::from_file("test.freds")).unwrap();
+    let json: Value = value_from_inline(reader.core, &mut reader).unwrap();
+    let compare: Value = from_str(include_str!("test.json")).unwrap();
+    assert_eq!(json, compare);
 }

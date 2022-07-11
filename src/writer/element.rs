@@ -4,6 +4,7 @@ pub struct Element {
 impl Element {
     pub fn into_bytes(self) -> Vec<u8> {
         let size = self.data.len();
-        size.to_be_bytes().into_iter().chain(self.data).collect()
+        let size_bytes: [u8; 8] = size.to_be_bytes();
+        [size_bytes.as_slice(), &self.data].concat()
     }
 }

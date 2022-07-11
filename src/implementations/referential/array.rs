@@ -30,5 +30,18 @@ impl ReferentialData for Array {
             .collect::<Vec<Vec<u8>>>()
             .concat())
     }
+    fn from_bytes(bytes: Vec<u8>) -> Result<Self, Error> {
+        use crate::data::constants::*;
+        println!("{:?}", bytes);
+        let data: Vec<Inline> = bytes
+            .chunks_exact(SIZE_KIND + SIZE_INLINE)
+            .map(|d| {
+                let d: [u8; 9] = d.try_into().unwrap();
+                d
+            })
+            .map(Inline::from)
+            .collect();
+        Ok(Array { data })
+    }
 }
 impl InlineData for Array {}

@@ -4,21 +4,26 @@ pub struct Kind {
     pub data: Vec<Element>,
 }
 impl Kind {
-    pub fn into_bytes(self, kind: [u8; SIZE_KIND * 8]) -> Vec<u8> {
-        let size = self.data.len();
-        if size > 0 {
-            let data: Vec<u8> = self.data.into_iter().flat_map(|e| e.into_bytes()).collect();
-            size.to_be_bytes()
-                .into_iter()
-                .chain(kind)
-                .chain(data)
-                .collect()
+    pub fn into_bytes(self, kind: [u8; SIZE_KIND]) -> Vec<u8> {
+        if self.data.len() > 0 {
+            let data_bytes: Vec<u8> = self.data.into_iter().flat_map(|e| e.into_bytes()).collect();
+            let size = data_bytes.len();
+            if size == 0 {
+                return Vec::new();
+            }
+            let size_bytes: [u8; 8] = size.to_be_bytes();
+            [
+                size_bytes.as_slice(),
+                kind.as_slice(),
+                data_bytes.as_slice(),
+            ]
+            .concat()
         } else {
             Vec::new()
         }
     }
-    pub fn append(&mut self, data: Vec<u8>) -> Result<usize, Error> {
+    pub fn append(&mut self, data: Vec<u8>) -> Result<u64, Error> {
         self.data.push(Element { data });
-        Ok(self.data.len() - 1)
+        Ok(self.data.len() as u64 - 1)
     }
 }

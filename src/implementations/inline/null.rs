@@ -13,5 +13,8 @@ impl InlineData for Null {
     fn into_inline_data(self) -> Result<[u8; SIZE_INLINE], Error> {
         Ok([0; SIZE_INLINE])
     }
+    fn from_inline_data(_bytes: [u8; SIZE_INLINE]) -> Result<Self, Error> {
+        Ok(Null)
+    }
 }
 impl ReferentialData for Null {}

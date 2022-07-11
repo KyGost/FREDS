@@ -2,7 +2,7 @@ mod inline;
 mod referential;
 use crate::{
     data::constants::{SIZE_INLINE, SIZE_KIND},
-    Inline, Writer,
+    Inline, Null, Reader, Writer,
 };
 pub use {inline::InlineData, referential::ReferentialData};
 
@@ -12,6 +12,8 @@ pub enum Error {
     ExpectedReferentialType,
     ExpectedInlineType,
     ParseError,
+    InvalidKind,
+    BadReference,
 }
 
 pub trait Data: InlineData + ReferentialData {
@@ -37,12 +39,15 @@ pub trait DataExt: Data {
         })
     }
     #[cfg(feature = "read")]
-    fn from_inline(_inline: Inline) -> Result<Self, Error> {
-        /*let data = if Self::IS_INLINE {
-            Self::from_inline(inline)
+    fn from_inline(inline: Inline, reader: &mut Reader) -> Result<Self, Error> {
+        if Self::IS_INLINE {
+            Self::from_inline_data(inline.data)
         } else {
-            Self::from_ref(inline)
-        }*/
-        unimplemented!()
+            Self::from_bytes(
+                tokio::runtime::Runtime::new()
+                    .unwrap()
+                    .block_on(reader.get_bytes(inline)).unwrap_or_default()//?
+            )
+        }
     }
 }
