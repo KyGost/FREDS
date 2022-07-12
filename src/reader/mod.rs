@@ -23,12 +23,41 @@ pub struct Reader<Value: crate::Value> {
 }
 impl<Value: crate::Value> Reader<Value> {
     pub async fn get(&mut self, inline: Inline) -> Result<&Value, Error> {
-        if let Some(Some(kind)) = self.data.get_mut(inline.kind[0] as usize) {
-            kind.get(&mut self.reader, inline).await
+        match self.get_element(inline).await? {
+            Element::Value(value) => Ok(value),
+            Element::Size { start, size } => {
+                self.reader.seek(SeekFrom::Start(*start)).await.unwrap();
+                let mut bytes = vec![0_u8; *size as usize];
+                self.reader.read(&mut bytes).await.unwrap();
+                let value = Value::from_bytes(self, inline.kind[0], bytes)?;
+                if let Some(data) = &mut self.data[inline.kind[0] as usize] {
+                    data.elements[usize::from_be_bytes(inline.data)] = Element::Value(value);
+                    if let Some(Element::Value(value)) =
+                        data.elements.get(usize::from_be_bytes(inline.data))
+                    {
+                        Ok(value)
+                    } else {
+                        unreachable!()
+                    }
+                } else {
+                    unimplemented!()
+                }
+            }
+            Element::Unknown => unimplemented!(),
+        }
+    }
+    async fn get_element(&self, inline: Inline) -> Result<&Element<Value>, Error> {
+        if let Some(Some(kind)) = self.data.get(inline.kind[0] as usize) {
+            if let Some(element) = kind.elements.get(usize::from_be_bytes(inline.data)) {
+                Ok(element)
+            } else {
+                unimplemented!()
+            }
         } else {
             unimplemented!()
         }
     }
+    async fn get_value(&mut self, inline: Value) -> Result<Value, Error> {}
     /*async fn get_bytes(&mut self, inline: Inline) -> Result<Vec<u8>, Error> {
         let element_number = u64::from_be_bytes(inline.data) as usize;
         println!(
