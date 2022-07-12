@@ -53,14 +53,20 @@ pub fn number_into_inline(writer: &mut Writer, number: Number) -> Result<Inline,
 
 macro_rules! convert_enum {
     [$($kind: ty),*] => {
-        fn value_from_inline(inline: Inline, reader: &mut crate::Reader) -> Result<Value, Error> {
+        fn value_from_bytes(kind: u8, bytes: Vec<u8>) -> Result<Value, Error> {
             use crate::{Data, implementations::serde_json::IntoValue};
-            Ok(match inline.kind {
+            Ok(match kind {
                 Null::KIND => Value::Null,
-                $(<$kind>::KIND => <$kind>::from_inline(inline, reader)?.into_value(reader)?),*,
+                $(<$kind>::KIND => <$kind>::from_bytes(bytes)?.into_value()?),*,
                 _ => Value::Null,
             })
         }
+    }
+}
+
+impl crate::Value for Value {
+    fn from_bytes(kind: u8, bytes: Vec<u8>) -> Result<Self, Error> {
+        value_from_bytes(kind, bytes)
     }
 }
 
