@@ -19,12 +19,15 @@ use {
 pub struct Reader<Value: crate::Value> {
     reader: BufReader<File>,
     pub core: Inline,
-    data: [Kind<Value>; 2_usize.pow(SIZE_KIND as u32 * 8)],
+    data: [Option<Kind<Value>>; 2_usize.pow(SIZE_KIND as u32 * 8)],
 }
 impl<Value: crate::Value> Reader<Value> {
-    async fn get(&mut self, inline: Inline) -> Result<Value, Error> {
-        let kind = &mut self.data[inline.kind[0]];
-        kind.get(self, inline.data)
+    pub async fn get(&mut self, inline: Inline) -> Result<&Value, Error> {
+        if let Some(Some(kind)) = self.data.get_mut(inline.kind[0] as usize) {
+            kind.get(&mut self.reader, inline).await
+        } else {
+            unimplemented!()
+        }
     }
     /*async fn get_bytes(&mut self, inline: Inline) -> Result<Vec<u8>, Error> {
         let element_number = u64::from_be_bytes(inline.data) as usize;
@@ -53,13 +56,14 @@ impl<Value: crate::Value> Reader<Value> {
     }*/
 }
 impl<Value: crate::Value> Reader<Value> {
-    pub async fn from_file(path: &str) -> Result<Reader, Error> {
+    const NONE: Option<Kind<Value>> = None;
+    pub async fn from_file(path: &str) -> Result<Reader<Value>, Error> {
         let file = File::open(path).await.unwrap();
         let mut reader = BufReader::new(file);
         let mut core = Inline::BUFFER;
         reader.read(&mut core).await.unwrap();
         let core = core.into();
-        let data = [Kind::Unknown; 2_usize.pow(SIZE_KIND as u32 * 8)];
+        let data = [Self::NONE; 2_usize.pow(SIZE_KIND as u32 * 8)];
         Ok(Self { reader, core, data })
     }
     async fn fill_kinds(&mut self) {
@@ -73,30 +77,39 @@ impl<Value: crate::Value> Reader<Value> {
                 break;
             } else {
                 let start = self.reader.seek(SeekFrom::Current(0)).await.unwrap();
-                self.data[kind.into()] = Kind::Size { start, size };
-                self.fill_elements(kind.into()).await;
+                self.data[kind[0] as usize] = Some(Kind {
+                    start,
+                    size,
+                    elements: Vec::new(),
+                });
+                self.fill_elements(kind[0] as usize).await;
             }
         }
     }
     async fn fill_elements(&mut self, kind: usize) {
-        let start = self.data[kind.into()].start;
-        let end = start + self.data[kind.into()].size;
-        let elements = &mut self.data[kind.into()].elements;
-        elements.clear();
-        self.reader.seek(SeekFrom::Start(start)).await.unwrap();
-        loop {
-            let mut size = [0; SIZE_SIZE];
-            self.reader.read(&mut size).await.unwrap();
-            let size = u64::from_be_bytes(size);
-            let start = self.reader.seek(SeekFrom::Current(0)).await.unwrap();
-            elements.push(Element::Size { start, size });
-            self.reader
-                .seek(SeekFrom::Current(size as i64))
-                .await
-                .unwrap();
-            if start + size == end {
-                break;
+        if let Some(Some(kind)) = self.data.get_mut(kind) {
+            let start = kind.start;
+            let end = start + kind.size;
+            let elements = &mut kind.elements;
+
+            elements.clear();
+            self.reader.seek(SeekFrom::Start(start)).await.unwrap();
+            loop {
+                let mut size = [0; SIZE_SIZE];
+                self.reader.read(&mut size).await.unwrap();
+                let size = u64::from_be_bytes(size);
+                let start = self.reader.seek(SeekFrom::Current(0)).await.unwrap();
+                elements.push(Element::Size { start, size });
+                self.reader
+                    .seek(SeekFrom::Current(size as i64))
+                    .await
+                    .unwrap();
+                if start + size == end {
+                    break;
+                }
             }
+        } else {
+            unimplemented!()
         }
     }
 }

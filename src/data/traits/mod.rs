@@ -38,16 +38,4 @@ pub trait DataExt: Data {
             kind: Self::KIND,
         })
     }
-    #[cfg(feature = "read")]
-    fn from_inline(inline: Inline, reader: &mut Reader) -> Result<Self, Error> {
-        if Self::IS_INLINE {
-            Self::from_inline_data(inline.data)
-        } else {
-            Self::from_bytes(
-                tokio::runtime::Runtime::new()
-                    .unwrap()
-                    .block_on(reader.get_bytes(inline)).unwrap_or_default()//?
-            )
-        }
-    }
 }
