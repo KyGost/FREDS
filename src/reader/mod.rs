@@ -28,7 +28,7 @@ impl<Value: crate::Value> Reader<Value> {
                 self.reader.seek(SeekFrom::Start(start)).await.unwrap();
                 let mut bytes = vec![0_u8; size as usize];
                 self.reader.read(&mut bytes).await.unwrap();
-                let value = Value::from_bytes(self, inline.kind, bytes)?;
+                let value = Value::from_bytes(self, inline.kind, bytes).await?;
                 if let Some(data) = &mut self.data[inline.kind[0] as usize] {
                     data.elements[usize::from_be_bytes(inline.data)] = Element::Value(value);
                     if let Some(Element::Value(value)) =
@@ -42,7 +42,7 @@ impl<Value: crate::Value> Reader<Value> {
                     unimplemented!()
                 }
             }
-            Element::Unknown => unimplemented!(),
+            Element::Unknown => Value::from_bytes(self, [0_u8], vec![]).await,
         }
     }
     async fn get_element(&self, inline: Inline) -> Result<&Element<Value>, Error> {
@@ -53,7 +53,7 @@ impl<Value: crate::Value> Reader<Value> {
                 unimplemented!()
             }
         } else {
-            unimplemented!()
+            Ok(&Element::Unknown)
         }
     }
     //async fn get_value(&mut self, inline: Value) -> Result<Value, Error> {}
@@ -92,7 +92,9 @@ impl<Value: crate::Value> Reader<Value> {
         reader.read(&mut core).await.unwrap();
         let core = core.into();
         let data = [Self::NONE; 2_usize.pow(SIZE_KIND as u32 * 8)];
-        Ok(Self { reader, core, data })
+        let mut reader = Self { reader, core, data };
+        reader.fill_kinds().await;
+        Ok(reader)
     }
     async fn fill_kinds(&mut self) {
         loop {

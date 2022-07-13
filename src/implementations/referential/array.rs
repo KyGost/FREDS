@@ -32,7 +32,6 @@ impl ReferentialData for Array {
     }
     fn from_bytes(bytes: Vec<u8>) -> Result<Self, Error> {
         use crate::data::constants::*;
-        println!("{:?}", bytes);
         let data: Vec<Inline> = bytes
             .chunks_exact(SIZE_KIND + SIZE_INLINE)
             .map(|d| {
