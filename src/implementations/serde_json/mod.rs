@@ -202,6 +202,15 @@ fn to_file_simple() {
     let mut buffer = std::fs::File::create("test_simple.freds").unwrap();
     buffer.write(&writer).unwrap();
 }
+#[cfg(feature = "write")]
+#[test]
+fn to_file_jsonorg() {
+    use {serde_json::from_str, std::io::prelude::*};
+    let json: Value = from_str(include_str!("test_jsonorg.json")).unwrap();
+    let writer = json.write();
+    let mut buffer = std::fs::File::create("test_jsonorg.freds").unwrap();
+    buffer.write(&writer).unwrap();
+}
 #[cfg(feature = "read")]
 #[test]
 fn from_file_simple() {
@@ -237,4 +246,16 @@ fn from_file_misc() {
     let json: Value = runtime.block_on(reader.get(reader.core)).unwrap();
     let compare: Value = from_str(include_str!("test_misc.json")).unwrap();
     assert!(json == compare);
+}
+#[cfg(feature = "read")]
+#[test]
+fn from_file_jsonorg() {
+    use {serde_json::from_str, tokio::runtime::Runtime};
+    let runtime = Runtime::new().unwrap();
+    let mut reader = runtime
+        .block_on(Reader::from_file("test_jsonorg.freds"))
+        .unwrap();
+    let json: Value = runtime.block_on(reader.get(reader.core)).unwrap();
+    let compare: Value = from_str(include_str!("test_jsonorg.json")).unwrap();
+    assert_eq!(json, compare);
 }
