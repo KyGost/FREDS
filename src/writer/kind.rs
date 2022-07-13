@@ -5,7 +5,7 @@ pub struct Kind {
 }
 impl Kind {
     pub fn into_bytes(self, kind: [u8; SIZE_KIND]) -> Vec<u8> {
-        if self.data.len() > 0 {
+        if !self.data.is_empty() {
             let data_bytes: Vec<u8> = self.data.into_iter().flat_map(|e| e.into_bytes()).collect();
             let size = data_bytes.len();
             if size == 0 {
