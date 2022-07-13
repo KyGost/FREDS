@@ -1,5 +1,7 @@
 use {
-    crate::{Array, DataExt, Error, Inline, Map, Null, Reader, Write, Writer},
+    crate::{
+        data::constants::SIZE_KIND, Array, DataExt, Error, Inline, Map, Null, Reader, Write, Writer,
+    },
     serde_json::{Number, Value},
 };
 impl Write for Value {
@@ -53,8 +55,8 @@ pub fn number_into_inline(writer: &mut Writer, number: Number) -> Result<Inline,
 
 macro_rules! convert_enum {
     [$($kind: ty),*] => {
-        fn value_from_bytes(reader: &mut Reader<Value>, kind: u8, bytes: Vec<u8>) -> Result<Value, Error> {
-            use crate::{Data, implementations::serde_json::IntoValue};
+        fn value_from_bytes(reader: &mut Reader<Value>, kind: [u8; crate::data::constants::SIZE_KIND], bytes: Vec<u8>) -> Result<Value, Error> {
+            use crate::{Data, ReferentialData, implementations::serde_json::IntoValue};
             Ok(match kind {
                 Null::KIND => Value::Null,
                 $(<$kind>::KIND => <$kind>::from_bytes(bytes)?.into_value(reader)?),*,
@@ -65,7 +67,11 @@ macro_rules! convert_enum {
 }
 
 impl crate::Value for Value {
-    fn from_bytes(reader: &mut Reader<Value>, kind: u8, bytes: Vec<u8>) -> Result<Self, Error> {
+    fn from_bytes(
+        reader: &mut Reader<Value>,
+        kind: [u8; SIZE_KIND],
+        bytes: Vec<u8>,
+    ) -> Result<Self, Error> {
         value_from_bytes(reader, kind, bytes)
     }
 }
@@ -75,18 +81,29 @@ trait IntoValue: Sized {
 }
 impl IntoValue for Array {
     fn into_value(self, reader: &mut Reader<Value>) -> Result<Value, Error> {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
         self.data
             .into_iter()
-            .map(|data| reader.get(data))
+            .map(|data| runtime.block_on(reader.get(data)))
             .collect::<Result<Vec<Value>, Error>>()
             .map(Value::Array)
     }
 }
 impl IntoValue for Map {
     fn into_value(self, reader: &mut Reader<Value>) -> Result<Value, Error> {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
         self.data
             .into_iter()
-            .map(|(key, value)| Ok((reader.get(key).await?, reader.get(value).await?)))
+            .map(|(key, value)| {
+                Ok((
+                    runtime
+                        .block_on(reader.get(key))?
+                        .as_str()
+                        .unwrap()
+                        .to_string(),
+                    runtime.block_on(reader.get(value))?,
+                ))
+            })
             .collect::<Result<serde_json::Map<String, Value>, Error>>()
             .map(Value::Object)
     }
@@ -148,7 +165,7 @@ fn from_file() {
     use {serde_json::from_str, tokio::runtime::Runtime};
     let runtime = Runtime::new().unwrap();
     let mut reader = runtime.block_on(Reader::from_file("test.freds")).unwrap();
-    let json: Value = value_from_inline(reader.core, &mut reader).unwrap();
+    let json: Value = runtime.block_on(reader.get(reader.core)).unwrap();
     let compare: Value = from_str(include_str!("test.json")).unwrap();
     assert_eq!(json, compare);
 }
