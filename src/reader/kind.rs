@@ -1,6 +1,4 @@
-use {
-    super::element::Element,
-};
+use super::element::Element;
 #[derive(Debug)]
 pub struct Kind<Value: crate::Value> {
     pub start: u64,
