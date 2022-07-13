@@ -147,23 +147,39 @@ fn any() {
 }
 #[cfg(feature = "write")]
 #[test]
-fn big() {
+fn write_book() {
     use serde_json::from_str;
-    let json: Value = from_str(include_str!("test1.json")).unwrap();
+    let json: Value = from_str(include_str!("test_book.json")).unwrap();
     json.write();
 }
 #[cfg(feature = "write")]
 #[test]
-fn to_file() {
+fn write_misc() {
+    use serde_json::from_str;
+    let json: Value = from_str(include_str!("test_misc.json")).unwrap();
+    json.write();
+}
+#[cfg(feature = "write")]
+#[test]
+fn to_file_book() {
     use {serde_json::from_str, std::io::prelude::*};
-    let json: Value = from_str(include_str!("test1.json")).unwrap();
+    let json: Value = from_str(include_str!("test_book.json")).unwrap();
     let writer = json.write();
-    let mut buffer = std::fs::File::create("test_big.freds").unwrap();
+    let mut buffer = std::fs::File::create("test_book.freds").unwrap();
     buffer.write(&writer).unwrap();
 }
 #[cfg(feature = "write")]
 #[test]
-fn to_simple() {
+fn to_file_misc() {
+    use {serde_json::from_str, std::io::prelude::*};
+    let json: Value = from_str(include_str!("test_misc.json")).unwrap();
+    let writer = json.write();
+    let mut buffer = std::fs::File::create("test_misc.freds").unwrap();
+    buffer.write(&writer).unwrap();
+}
+#[cfg(feature = "write")]
+#[test]
+fn to_file_simple() {
     use {serde_json::json, std::io::prelude::*};
     let json: Value = json!({"a": "Test!"});
     let writer = json.write();
@@ -172,7 +188,7 @@ fn to_simple() {
 }
 #[cfg(feature = "read")]
 #[test]
-fn from_simple() {
+fn from_file_simple() {
     use {serde_json::json, tokio::runtime::Runtime};
     let runtime = Runtime::new().unwrap();
     let mut reader = runtime
@@ -184,13 +200,25 @@ fn from_simple() {
 }
 #[cfg(feature = "read")]
 #[test]
-fn from_file() {
+fn from_file_book() {
     use {serde_json::from_str, tokio::runtime::Runtime};
     let runtime = Runtime::new().unwrap();
     let mut reader = runtime
-        .block_on(Reader::from_file("test_big.freds"))
+        .block_on(Reader::from_file("test_book.freds"))
         .unwrap();
     let json: Value = runtime.block_on(reader.get(reader.core)).unwrap();
-    let compare: Value = from_str(include_str!("test.json")).unwrap();
+    let compare: Value = from_str(include_str!("test_book.json")).unwrap();
+    assert!(json == compare);
+}
+#[cfg(feature = "read")]
+#[test]
+fn from_file_misc() {
+    use {serde_json::from_str, tokio::runtime::Runtime};
+    let runtime = Runtime::new().unwrap();
+    let mut reader = runtime
+        .block_on(Reader::from_file("test_misc.freds"))
+        .unwrap();
+    let json: Value = runtime.block_on(reader.get(reader.core)).unwrap();
+    let compare: Value = from_str(include_str!("test_misc.json")).unwrap();
     assert!(json == compare);
 }
