@@ -9,7 +9,6 @@ use {
     },
     element::Element,
     kind::Kind,
-    std::collections::HashMap,
     tokio::{
         fs::File,
         io::{AsyncReadExt, AsyncSeekExt, BufReader, SeekFrom},

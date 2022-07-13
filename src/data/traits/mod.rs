@@ -2,7 +2,7 @@ mod inline;
 mod referential;
 use crate::{
     data::constants::{SIZE_INLINE, SIZE_KIND},
-    Inline, Null, Reader, Writer,
+    Inline, Writer,
 };
 pub use {inline::InlineData, referential::ReferentialData};
 
