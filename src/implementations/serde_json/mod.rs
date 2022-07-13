@@ -85,35 +85,24 @@ trait IntoValue: Sized {
 #[async_trait]
 impl IntoValue for Array {
     async fn into_value(self, reader: &mut Reader<Value>) -> Result<Value, Error> {
-        use futures::future::join_all;
-        join_all(
-            self.data
-                .into_iter()
-                .map(|data| async move { reader.get(data).await })
-                .collect::<Vec<_>>(),
-        )
-        .await
-        .into_iter()
-        .collect::<Result<Vec<_>, _>>()
-        .map(Value::Array)
+        let mut vec = Vec::new();
+        for data in self.data.into_iter() {
+            let value = reader.get(data).await?;
+            vec.push(value);
+        }
+        Ok(Value::Array(vec))
     }
 }
 #[async_trait]
 impl IntoValue for Map {
     async fn into_value(self, reader: &mut Reader<Value>) -> Result<Value, Error> {
-        use futures::{
-            future::try_join_all,
-            stream::{iter, StreamExt},
-        };
-        try_join_all(self.data.into_iter().map(|(key, value)| async move {
-            Ok((
-                reader.get(key).await?.as_str().unwrap().to_string(),
-                reader.get(value).await?,
-            ))
-        }))
-        .await
-        .map(|values| values.into_iter().collect::<serde_json::Map<_, _>>())
-        .map(Value::Object)
+        let mut map = serde_json::Map::new();
+        for (key, value) in self.data.into_iter() {
+            let key = reader.get(key).await?.as_str().unwrap().to_string();
+            let value = reader.get(value).await?;
+            map.insert(key, value);
+        }
+        Ok(Value::Object(map))
     }
 }
 #[async_trait]
