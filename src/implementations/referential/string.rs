@@ -9,8 +9,7 @@ impl ReferentialData for String {
         Ok(self.as_bytes().to_vec())
     }
     fn from_bytes(bytes: Vec<u8>) -> Result<Self, Error> {
-        //Self::from_utf8(bytes).map_err(|_| Error::ParseError)
-        Ok(Self::from_utf8(bytes).unwrap_or_default())
+        Self::from_utf8(bytes).map_err(|_| Error::ParseError)
     }
 }
 impl InlineData for String {}

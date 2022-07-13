@@ -53,7 +53,7 @@ pub fn number_into_inline(writer: &mut Writer, number: Number) -> Result<Inline,
     }
 }
 
-macro_rules! convert_enum {
+macro_rules! referential_convert_enum {
     [$($kind: ty),*] => {
         async fn value_from_bytes(reader: &mut Reader<Value>, kind: [u8; crate::data::constants::SIZE_KIND], bytes: Vec<u8>) -> Result<Value, Error> {
             use crate::{Data, ReferentialData, implementations::serde_json::IntoValue};
@@ -65,6 +65,21 @@ macro_rules! convert_enum {
         }
     }
 }
+referential_convert_enum![Array, Map, String];
+
+macro_rules! inline_convert_enum {
+    [$($kind: ty),*] => {
+        async fn value_from_inline(reader: &mut Reader<Value>, inline: Inline) -> Result<Value, Error> {
+            use crate::{Data, InlineData, implementations::serde_json::IntoValue};
+            Ok(match inline.kind {
+                Null::KIND => Value::Null,
+                $(<$kind>::KIND => <$kind>::from_inline_data(inline.data)?.into_value(reader).await?),*,
+                _ => Value::Null,
+            })
+        }
+    }
+}
+inline_convert_enum![u64, i64, f64, bool];
 
 #[async_trait]
 impl crate::Value for Value {
@@ -74,6 +89,9 @@ impl crate::Value for Value {
         bytes: Vec<u8>,
     ) -> Result<Self, Error> {
         value_from_bytes(reader, kind, bytes).await
+    }
+    async fn from_inline(reader: &mut Reader<Value>, inline: Inline) -> Result<Self, Error> {
+        value_from_inline(reader, inline).await
     }
 }
 
@@ -135,8 +153,6 @@ impl IntoValue for bool {
         Ok(Value::Bool(self))
     }
 }
-
-convert_enum![Array, Map, String, u64, i64, f64, bool];
 
 #[cfg(feature = "write")]
 #[test]

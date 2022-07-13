@@ -42,7 +42,7 @@ impl<Value: crate::Value> Reader<Value> {
                     unimplemented!()
                 }
             }
-            Element::Unknown => Value::from_bytes(self, [0_u8], vec![]).await,
+            Element::Unknown => Value::from_inline(self, inline).await,
         }
     }
     async fn get_element(&self, inline: Inline) -> Result<&Element<Value>, Error> {
