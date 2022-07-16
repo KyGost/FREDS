@@ -1,5 +1,6 @@
 use crate::{Data, DataExt, Error, Inline, InlineData, ReferentialData, Writer};
 
+#[derive(Clone, Debug)]
 pub struct Array {
     pub data: Vec<Inline>,
 }
