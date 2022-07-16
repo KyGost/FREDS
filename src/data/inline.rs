@@ -1,4 +1,4 @@
-use crate::data::constants::*;
+use crate::{data::constants::*, Error};
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Default, Debug)]
 pub struct Inline {
     pub kind: [u8; SIZE_KIND],
@@ -18,5 +18,14 @@ impl From<[u8; SIZE_KIND + SIZE_INLINE]> for Inline {
             kind: input[..SIZE_KIND].try_into().unwrap(),
             data: input[SIZE_KIND..].try_into().unwrap(),
         }
+    }
+}
+impl TryFrom<Vec<u8>> for Inline {
+    type Error = Error;
+    fn try_from(input: Vec<u8>) -> Result<Self, Error> {
+        Ok(Self {
+            kind: input[..SIZE_KIND].try_into().unwrap(),
+            data: input[SIZE_KIND..].try_into().unwrap(),
+        })
     }
 }
