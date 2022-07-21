@@ -2,19 +2,9 @@ mod inline;
 mod referential;
 use crate::{
     data::constants::{SIZE_INLINE, SIZE_KIND},
-    Inline, Writer,
+    Error, Inline, RefRelation, Writer,
 };
 pub use {inline::InlineData, referential::ReferentialData};
-
-#[derive(Debug)]
-pub enum Error {
-    Unimplemented,
-    ExpectedReferentialType,
-    ExpectedInlineType,
-    ParseError,
-    InvalidKind,
-    BadReference,
-}
 
 pub trait Data: InlineData + ReferentialData {
     const KIND: [u8; SIZE_KIND];

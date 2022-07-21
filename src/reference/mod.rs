@@ -1,12 +1,20 @@
+mod relation;
+pub use relation::*;
 use {
-    crate::{Data, Error, Inline, Reader as DM, Value},
+    crate::{Data, Error, Inline, Value, DM},
     std::marker::PhantomData,
 };
 #[derive(Default, Debug, Clone, Copy)]
-pub struct Ref<Kind: Data>(Inline, PhantomData<Kind>);
-impl<Kind: Data> Ref<Kind> {
+pub struct Ref<Kind: Value> {
+    pub inline: Inline,
+    p_kind: PhantomData<Kind>,
+}
+impl<Kind: Value> Ref<Kind> {
     pub fn new(inline: Inline) -> Self {
-        Self(inline, PhantomData)
+        Self {
+            inline,
+            p_kind: PhantomData,
+        }
     }
     pub async fn get(self, dm: &DM) -> Result<Kind, Error> {
         dm.get(self.0).await
@@ -15,7 +23,7 @@ impl<Kind: Data> Ref<Kind> {
         dm.set(self.0).await
     }
 }
-impl<Kind: Data, Input: Into<Inline>> From<Input> for Ref<Kind> {
+impl<Kind: Value, Input: Into<Inline>> From<Input> for Ref<Kind> {
     fn from(from: Input) -> Self {
         let inline = from.into();
         Ref::new(inline)
